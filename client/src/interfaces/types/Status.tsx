@@ -1,0 +1,1 @@
+export type Status = "Online"|"Ausente"|"Ocupado"
