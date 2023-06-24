@@ -5,6 +5,7 @@ import express from "express"
 import database from "../helper/mongoDBConnection"
 import UserSchema from "../schema/User";
 import * as dotenv from 'dotenv'
+import jwt from "jsonwebtoken"
 import jwtAuthMiddleware from "../middleware/jwtAuthMiddleware";
 
 // Dotenv
@@ -37,6 +38,27 @@ route.get("/visiting/user/:email", jwtAuthMiddleware, async (req, res) => {
 
     // Retorna os dados
     return res.status(200).json(dataFormatter);
+})
+
+route.post("/visiting/exclude", jwtAuthMiddleware, async (req, res) => {
+    
+    // Token
+    const token = req.headers["authorization"]
+    const tokenData: any = jwt.decode(token!);
+
+    // Dados
+    const { email } = req.body;
+
+    await Usuario.updateOne({email: tokenData.email}, {
+        $pull: {
+            amigos: {
+                email: email
+            }
+        },
+    })
+
+    return res.status(200).json({msg: "Excluido com sucesso!", error: false})
+
 })
 
 export default route;

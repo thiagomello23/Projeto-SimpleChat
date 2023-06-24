@@ -1,5 +1,5 @@
 
-import { View, Text, StyleSheet, Image, ScrollView, Modal, Pressable, TextInput } from 'react-native'
+import { View, Text, StyleSheet, Image, ScrollView, Modal, Pressable, TextInput, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import Status from '../../components/Status';
 import { StatusBar } from 'expo-status-bar';
@@ -12,6 +12,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import * as ImagePicker from 'expo-image-picker';
 import mime from "mime"
+import { useIsFocused } from '@react-navigation/native';
 
 export default function Profile({navigation}) {
 
@@ -27,6 +28,8 @@ export default function Profile({navigation}) {
     const [token, setToken] = useState<string>();
     const [senhas, setSenhas] = useState({senha: "", confirmaSenha: ""});
 
+    const isFocused = useIsFocused();
+
     useEffect(() => {
 
         async function encapsulating() {
@@ -41,6 +44,7 @@ export default function Profile({navigation}) {
 
             if(d.error) {
                 // Enviar para a aba de login
+                navigation.navigate("Login")
             } else {
                 // Seta os dados
                 setData(d);
@@ -51,17 +55,19 @@ export default function Profile({navigation}) {
 
         encapsulating();
 
-    }, [])
+    }, [isFocused])
 
     if(!data) return;
 
     async function changePasswordHandler() {
 
-        // error handling
-        // Comparar as senhas e aplicar regra de negocio com validacao
         if(!senhas.senha) return;
 
-        if(senhas.senha !== senhas.confirmaSenha) return;
+        if(senhas.senha !== senhas.confirmaSenha) {
+            return Alert.alert("Falha", "As senhas devem se coincidir", [{
+                text: "Ok"
+            }])
+        };
         // Enviar para a api
         const {data: d} = await axios.post(API_URL + "/profile/password", {
             password: senhas.senha
@@ -71,9 +77,11 @@ export default function Profile({navigation}) {
 
         if(d.error) {
             // Error Handling
+            return Alert.alert("Falha", "Houve um erro ao trocar de senha, por favor tente novamente!", [{text: "Ok"}])
         } else {
             // Mensagem de sucesso
             setPasswordModal(false);
+            return Alert.alert("Sucesso", "senha alterada com sucesso!", [{text: "Ok"}])
         }
 
     }
@@ -81,7 +89,7 @@ export default function Profile({navigation}) {
     async function changeNameHandler() {
         // Error Handling
         if(data.nome.length < 5) {
-            return;
+            return Alert.alert("Falha", "O nome de usuario deve conter no minimo 5 caracteres!", [{text: "Ok"}])
         }
 
         const {data: d} = await axios.post(API_URL + "/profile/name", {
@@ -93,24 +101,19 @@ export default function Profile({navigation}) {
         })
 
         if(d.error) {
-            // Se der erro voltar ao nome antigo
-            // Retornar um backup data e atribuir ao nome antigo
             // mensagem de erro
             // Backup
             setData((prev) => {return {...prev, nome: backup.nome}})
+            return Alert.alert("Falha", "Houve um erro ao trocar de nome, por favor tente novamente!", [{text: "Ok"}])
         } else {
             // Fecha modal
             setNameModal(false);
-            // Atualiza os dados
+            return Alert.alert("Sucesso", "Nome alterado com sucesso!", [{text: "Ok"}])
         }
 
     }
 
     async function changeBioHandler() {
-
-        if(data.bio.length == 0) {
-            return;
-        }
 
         const { data: d } = await axios.post(API_URL + "/profile/bio", {bio: data.bio}, {
             headers: {
@@ -124,10 +127,10 @@ export default function Profile({navigation}) {
             // Error handling
             // Backup
             setData((prev) => {return {...prev, bio: backup.bio}})
+            return Alert.alert("Falha", "Houve um erro ao trocar de bio, por favor tente novamente!", [{text: "Ok"}])
         } else {
             // Close modal
             setBioModal(false);
-            // Atualizar dados do perfil
         }
 
     }
@@ -164,9 +167,9 @@ export default function Profile({navigation}) {
 
             // Fazer a validacao
             if(d.error) {
-                // Error handling
+                return Alert.alert("Falha", "Houve um erro ao trocar de foto de perfil, por favor tente novamente!", [{text: "Ok"}]);
             } else {
-                // Caso deu certo mudar a foto de perfil
+                // Caso de certo mudar a foto de perfil
                 setData((prev) => {
                     return {...prev, profilePic: d.profilePic}
                 })
@@ -174,6 +177,7 @@ export default function Profile({navigation}) {
 
         } else {
             // Error Handling
+            return Alert.alert("Falha", "Houve um erro ao trocar de foto de perfil, por favor tente novamente!", [{text: "Ok"}]);
         }
 
     }
@@ -185,7 +189,7 @@ export default function Profile({navigation}) {
                 <Pressable style={styles.profileImageContainer} onPress={changeImageHandler}>
                     {/* @ts-ignore */}
                     <Image style={[styles.profilePic, {borderColor: statusColor(data.status)}]} source={{
-                        uri: `http://10.0.2.2:4000/files/${data.profilePic}`
+                        uri: data.profilePic ? `http://10.0.2.2:4000/files/${data.profilePic}` : "https://www.pngkey.com/png/detail/121-1219231_no-image-png.png"
                     }}/>
                     <Text style={styles.profileName}>{data.nome}</Text>
                 </Pressable>
@@ -193,7 +197,10 @@ export default function Profile({navigation}) {
                 <View style={styles.bioWrapper}>
                     <Text style={styles.sessionTitle}>Bio</Text>
                     <View style={styles.bioTextBox}>
-                        <Text style={styles.bioText}>{data.bio}</Text>
+                        <Text style={styles.bioText}>
+                            {data.bio.length == 0 && (<Text>Nenhuma informação!</Text>)}
+                            {data.bio}
+                        </Text>
                     </View>
                     <View style={styles.editBioBtn}><Button text='Editar' onpress={() => setBioModal(!bioModal)} /></View>
                 </View>
@@ -221,11 +228,11 @@ export default function Profile({navigation}) {
                     <Pressable onPress={() => setPasswordModal(!passwordModal)} style={styles.overlay}/>
                         <View style={styles.passwordChangeWrapper}>
                             <View style={styles.passwordInputWrapper}>
-                                <TextInput style={styles.passwordInput} placeholder='Digite sua nova senha' onChangeText={(t) => {setSenhas(prev => {
+                                <TextInput style={styles.passwordInput} secureTextEntry={true} placeholder='Digite sua nova senha' onChangeText={(t) => {setSenhas(prev => {
                                     return {...prev, senha: t}
                                 })}}/>
                                 <View style={styles.borderBottomView} />
-                                <TextInput style={styles.passwordInput} placeholder='Confirme sua nova senha' onChangeText={(t) => {setSenhas(prev => {
+                                <TextInput style={styles.passwordInput} secureTextEntry={true} placeholder='Confirme sua nova senha' onChangeText={(t) => {setSenhas(prev => {
                                     return {...prev, confirmaSenha: t}
                                 })}}/>
                             </View>
@@ -269,6 +276,11 @@ export default function Profile({navigation}) {
                 <View style={styles.friendWrapper}>
                     <Text style={styles.sessionTitle}>Amigos</Text>
                     <View style={styles.friendList}>
+                        {data.amigos.length == 0 && (
+                            <Text style={{fontWeight: "bold", fontSize: 16, padding: 10}}>
+                                Nenhum amigo adicionado!
+                            </Text>
+                        )}
                         {data.amigos.map(amigo => (
                             <Friend friendName={amigo.nome} friendStatus={amigo.status} friendPhoto={amigo.profilePic} key={amigo.email} onPress={() => navigation.navigate("Visiting", {
                                 email: amigo.email

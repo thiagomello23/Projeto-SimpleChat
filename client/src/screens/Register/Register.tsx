@@ -17,7 +17,6 @@ export default function Register({navigation}) {
     const [errorHandler, setErrorHandler] = useState<string|null>(null);
 
     async function handlingForm() {
-        // Ver sobre variaveis de ambiente no react-native
         // Fazer as verificacoes minimas
         if(!nome) {
             setErrorHandler("Nome muito pequeno, minimo 5 caracteres")
@@ -54,7 +53,7 @@ export default function Register({navigation}) {
             // Salva o token JWT
             await SecureStore.setItemAsync("jwt_token", data.token);
             // Redirecionar
-            navigation.navigate("Profile")
+            navigation.navigate("Chat")
         }
 
     }
@@ -71,8 +70,8 @@ export default function Register({navigation}) {
                 <View style={styles.formContainer}>
                     <TextInput placeholder='Digite seu nome' style={styles.inputText} onChangeText={setNome}/>
                     <TextInput placeholder='Digite seu email' style={styles.inputText} onChangeText={setEmail}/>
-                    <TextInput placeholder='Digite sua senha' style={styles.inputText} onChangeText={setSenha}/>
-                    <TextInput placeholder='Confirme sua senha' style={styles.inputText} onChangeText={setConfirmaSenha}/>
+                    <TextInput placeholder='Digite sua senha' style={styles.inputText} onChangeText={setSenha} secureTextEntry={true}/>
+                    <TextInput placeholder='Confirme sua senha' style={styles.inputText} onChangeText={setConfirmaSenha} secureTextEntry={true}/>
                     <View style={styles.buttonContainer}><Button text={"Cadastrar"} onpress={handlingForm} /></View>
                 </View>
                 <View style={styles.footer}>

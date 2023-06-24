@@ -10,11 +10,8 @@ const UserSchema = new Schema({
     bio: {type: String},
     status: {type: String, required: true},
     amigos: [{
-        nome: {type: String},
-        profilePic: {type: String},
-        bio: {type: String},
-        status: {type: String},
-        email: {type: String}
+        type: Schema.Types.ObjectId,
+        ref: "User"
     }]
 })
 

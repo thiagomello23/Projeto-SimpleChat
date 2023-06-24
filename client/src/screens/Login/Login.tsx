@@ -1,6 +1,6 @@
 
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import Button from '../../components/Button'
 import globalStyle from '../../globalStyles'
 import * as SecureStore from 'expo-secure-store';
@@ -10,10 +10,32 @@ import { API_URL } from '../../../constants';
 export default function Login({navigation}) {
 
     // States
-    // Tentar resolver de uma forma diferente
     const [email, setEmail] = useState<string>()
     const [senha, setSenha] = useState<string>()
     const [errorHandler, setErrorHandler] = useState<string>();
+    const [validation, setValidation] = useState<boolean>();
+
+    // Verifica se o usuario ja esta logado ou nao
+    useEffect(() => {
+
+        async function validationEncap() {
+            const { data: d } = await axios.get(API_URL + "/auth/validator", {
+                headers: {
+                    Authorization: await SecureStore.getItemAsync("jwt_token")
+                }
+            })
+            
+            if(d.error) {
+                setValidation(true)
+            } else {
+                navigation.navigate("Chat");
+            }
+            console.log("refresh")
+        }
+        validationEncap();
+    }, [navigation])
+
+    if(validation !== true) return;
 
     // Quando clicar fora fechar o teclado
     async function handlingForm() {
@@ -49,26 +71,28 @@ export default function Login({navigation}) {
     }
 
     return (
-        <KeyboardAvoidingView behavior={"height"} style={globalStyle.containerBlue} keyboardVerticalOffset={50}>
+        <KeyboardAvoidingView behavior={"height"} style={globalStyle.containerBlue}>
 
-                <Text style={globalStyle.title}>SimpleChat</Text>
-                {errorHandler && (
-                    <Text style={[globalStyle.errorMsg, {marginTop: 50}]}>{errorHandler}</Text>
-                )}
-                <View style={styles.formContainer}>
-                    <TextInput placeholder='Digite seu email' style={styles.inputText} onChangeText={setEmail} value={email}/>
-                    <TextInput placeholder='Digite sua senha' style={styles.inputText} onChangeText={setSenha} value={senha}/>
-                    <View style={styles.buttonContainer}>
-                        <Button text={"Entrar"} onpress={handlingForm} />
+                <ScrollView>
+                    <Text style={globalStyle.title}>SimpleChat</Text>
+                    {errorHandler && (
+                        <Text style={[globalStyle.errorMsg, {marginTop: 50}]}>{errorHandler}</Text>
+                    )}
+                    <View style={styles.formContainer}>
+                        <TextInput placeholder='Digite seu email' style={styles.inputText} onChangeText={setEmail} value={email}/>
+                        <TextInput placeholder='Digite sua senha' style={styles.inputText} onChangeText={setSenha} value={senha} secureTextEntry={true}/>
+                        <View style={styles.buttonContainer}>
+                            <Button text={"Entrar"} onpress={handlingForm} />
+                        </View>
                     </View>
-                </View>
-                <View style={styles.footer}>
-                    <Text style={styles.footerTitle}>Ainda não possui conta?</Text>
-                    {/* Link */}
-                    <TouchableOpacity onPress={() => {navigation.navigate("Register")}}>
-                        <Text style={globalStyle.footerLink}>CADASTRE-SE</Text>
-                    </TouchableOpacity>
-                </View>
+                    <View style={styles.footer}>
+                        <Text style={styles.footerTitle}>Ainda não possui conta?</Text>
+                        {/* Link */}
+                        <TouchableOpacity onPress={() => {navigation.navigate("Register")}}>
+                            <Text style={globalStyle.footerLink}>CADASTRE-SE</Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
 
         </KeyboardAvoidingView>
     )

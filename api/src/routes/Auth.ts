@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken"
 import * as dotenv from 'dotenv'
 import bcrypt from "bcrypt"
 import validator from "validator"
+import jwtAuthMiddleware from "../middleware/jwtAuthMiddleware";
 const route = express.Router();
 
 dotenv.config()
@@ -15,7 +16,6 @@ const Usuario = database.model("User", UserSchema)
 // Rotas para login e cadastro
 // Usar o validator
 route.post("/auth/register", async (req, res) => {
-
     const data: Register = req.body;
 
     // Verifica o email do usuario, senha e nome
@@ -36,20 +36,18 @@ route.post("/auth/register", async (req, res) => {
     // Salvar os dados no mongoDB
     try {
         const usuarioDoc = new Usuario({email: data.email, nome: data.nome, bio: "", senha: cript, profilePic: "", status: "Online"})
-        await usuarioDoc.save({validateBeforeSave: true});
+        const saved = await usuarioDoc.save({validateBeforeSave: true});
 
-        const token = jwt.sign({email: data.email}, process.env.JWT_SECRET!)
+        const token = jwt.sign({email: data.email, id: saved._id}, process.env.JWT_SECRET!)
 
         return res.status(200).json({msg: "Usuario criado com sucesso!", token: token});
     } catch(err) {
-        console.log(err);
         return res.status(500).json({msg: "Houve um erro, tente novamente!", error: true})
     }
 
 })
 
 route.post("/auth/login", async (req, res) => {
-
     const data: Login = req.body;
 
     // Validar os dados
@@ -73,7 +71,7 @@ route.post("/auth/login", async (req, res) => {
             return res.status(200).json({error: true, msg: "Senha incorreta!"})
         }
 
-        const token = jwt.sign({email: data.email}, process.env.JWT_SECRET!);
+        const token = jwt.sign({email: data.email, id: verifyAccount._id}, process.env.JWT_SECRET!);
 
         return res.status(200).json({error: false, msg: "Logado com sucesso!", token: token});
 
@@ -81,6 +79,11 @@ route.post("/auth/login", async (req, res) => {
         return res.status(200).json({error: true, msg: "Email ou senha invalidos!"})
     }
 })
+
+// Valida apenas se um token e valido
+route.get("/auth/validator", jwtAuthMiddleware, async (req, res) => {
+    return res.status(200).json({msg: "Token valido", error: false})
+});
 
 export default route;
 // Padrao para rota auth: {msg: "", error: "", token: ""}

@@ -12,7 +12,7 @@ async function jwtAuthMiddleware(req: any, res: any, next: any) {
     }
 
     try {
-        await jwt.verify(token, process.env.JWT_SECRET!);
+        jwt.verify(token, process.env.JWT_SECRET!);
         next();
     } catch(e) {
         return res.status(200).json({error: true, msg: "Token invalido"})

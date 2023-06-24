@@ -23,7 +23,7 @@ route.get("/profile", jwtAuthMiddleware, async (req, res) => {
 
     const tokenData: any = jwt.decode(token!);
 
-    const data = await Usuario.findOne({email: tokenData.email});
+    const data = await Usuario.findOne({email: tokenData.email}).populate("amigos");
 
     if(data) {
         // data.profilePic =  "F:/Desenvolvimento/Projetos/faculdade-message-app/api/src/upload/" + data?.profilePic;
@@ -69,7 +69,7 @@ route.post("/profile/name", jwtAuthMiddleware, async (req, res) => {
 })
 
 // Troca senha de um perfil
-route.post("/profile/password", async (req, res) => {
+route.post("/profile/password", jwtAuthMiddleware, async (req, res) => {
     const token = req.headers["authorization"]
     const tokenData: any = jwt.decode(token!);
 
@@ -131,8 +131,22 @@ route.post("/profile/photo", jwtAuthMiddleware, upload.single("profilePic"), asy
     })
 
     // Retorno com a URL da nova foto
-    return res.status(200).json({msg: "Foto alterada com sucesso!", error: false, profilePicUrl: "/api/src/upload/" + filename})
+    return res.status(200).json({msg: "Foto alterada com sucesso!", error: false, profilePic: filename})
+})
+
+// Retorna todos os amigos
+route.get("/profile/friends", jwtAuthMiddleware, async (req, res) => {
+
+    // Dados do token
+    const token = req.headers["authorization"]
+    const tokenData: any = jwt.decode(token!);
+
+    const data = await Usuario.findOne({email: tokenData.email}, {
+        amigos: true
+    }).populate("amigos")
+
+    return res.status(200).json(data)
 })
 
 export default route;
-// {msg: "", error: boolean}
+// {msg: "", error: boolean}z

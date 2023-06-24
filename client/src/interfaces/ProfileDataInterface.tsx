@@ -10,7 +10,13 @@ export interface ProfileInterface {
     amigos?: amigos[];
 }
 
+export interface AmigoInterface {
+    id: string;
+    amigos: amigos[]
+}
+
 export type amigos = {
+    _id: string;
     nome: string;
     bio: string;
     email: string;
