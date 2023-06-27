@@ -145,6 +145,8 @@ route.get("/profile/friends", jwtAuthMiddleware, async (req, res) => {
         amigos: true
     }).populate("amigos")
 
+    console.log(data);
+
     return res.status(200).json(data)
 })
 

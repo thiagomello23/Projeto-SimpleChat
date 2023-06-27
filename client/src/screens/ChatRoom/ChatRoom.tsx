@@ -66,7 +66,7 @@ export default function ChatRoom({ route, navigation }) {
     return (
         <View style={styles.chatContainer}>
             <View style={styles.chatHeader}>
-                <Image source={{uri: `http://10.0.2.2:4000/files/${data.profilePic}`}} style={styles.chatHeaderImage}/>
+                <Image source={{uri: data.profilePic ? `http://10.0.2.2:4000/files/${data.profilePic}` : "http://10.0.2.2:4000/files/defaultimage.png"}} style={styles.chatHeaderImage}/>
                 <Text style={styles.chatHeaderUsername}>{data.nome}</Text>
             </View>
 

@@ -7,7 +7,7 @@ import { Status } from '../interfaces/types/Status'
 export default function Friend({friendName, friendStatus, friendPhoto, onPress}: {friendName: string, friendStatus: Status, friendPhoto?: string, onPress?: () => void}) {
     return (
         <Pressable style={styles.friendContainer} onPress={onPress}>
-            <Image source={{uri: `http://10.0.2.2:4000/files/${friendPhoto}`}} style={[styles.friendPhoto, {borderColor: statusColor(friendStatus)}]} />
+            <Image source={{uri: friendPhoto ? `http://10.0.2.2:4000/files/${friendPhoto}` : "http://10.0.2.2:4000/files/defaultimage.png"}} style={[styles.friendPhoto, {borderColor: statusColor(friendStatus)}]} />
             <Text style={styles.friendName}>{friendName}</Text>
         </Pressable>
     )

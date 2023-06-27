@@ -96,6 +96,8 @@ route.get("/menu/notify", jwtAuthMiddleware, async (req, res) => {
         accept: false
     })
 
+    console.log(notificationsDetail)
+
     return res.status(200).json(notificationsDetail);
 
 })

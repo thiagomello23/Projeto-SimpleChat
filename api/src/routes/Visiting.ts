@@ -47,15 +47,16 @@ route.post("/visiting/exclude", jwtAuthMiddleware, async (req, res) => {
     const tokenData: any = jwt.decode(token!);
 
     // Dados
-    const { email } = req.body;
+    const { id } = req.body;
 
-    await Usuario.updateOne({email: tokenData.email}, {
-        $pull: {
-            amigos: {
-                email: email
-            }
-        },
-    })
+    console.log(tokenData)
+    console.log(id);
+
+    // await Usuario.updateOne({email: tokenData.email}, {
+    //     $pull: {
+    //         amigos: id
+    //     },
+    // })
 
     return res.status(200).json({msg: "Excluido com sucesso!", error: false})
 

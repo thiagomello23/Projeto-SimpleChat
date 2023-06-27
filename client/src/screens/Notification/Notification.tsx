@@ -35,7 +35,7 @@ export default function Notification({navigation}) {
     }, [update])
 
     return (
-        <View style={{backgroundColor: "#fff"}}>
+        <View style={{backgroundColor: "#fff", flex: 1}}>
             <FlatList 
                 data={data}
                 renderItem={({item}) => (

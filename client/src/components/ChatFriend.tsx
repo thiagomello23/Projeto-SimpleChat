@@ -6,7 +6,7 @@ export default function ChatFriend({friendName, friendPhoto, onPress}) {
     return (
         <Pressable style={styles.chatMessageContainer} onPress={onPress}>
             <Image source={{
-                uri: `http://10.0.2.2:4000/files/${friendPhoto}`
+                uri: friendPhoto ? `http://10.0.2.2:4000/files/${friendPhoto}` : "http://10.0.2.2:4000/files/defaultimage.png"
             }} style={styles.imageProfile} />
             <View>
                 <Text>{friendName}</Text>
